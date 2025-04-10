@@ -1,0 +1,61 @@
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: manager-role
+rules:
+- apiGroups:
+  - ""
+  resources:
+  - configmap
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - patch
+  - update
+  - watch
+- apiGroups:
+  - ""
+  resources:
+  - secrets
+  verbs:
+  - get
+  - list
+  - watch
+- apiGroups:
+  - apps
+  resources:
+  - deployments
+  verbs:
+  - get
+  - list
+  - patch
+  - update
+- apiGroups:
+  - core.kwatch.cloudcorner.org
+  resources:
+  - kwatchers
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - patch
+  - update
+  - watch
+- apiGroups:
+  - core.kwatch.cloudcorner.org
+  resources:
+  - kwatchers/finalizers
+  verbs:
+  - update
+- apiGroups:
+  - core.kwatch.cloudcorner.org
+  resources:
+  - kwatchers/status
+  verbs:
+  - get
+  - patch
+  - update

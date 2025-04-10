@@ -1,0 +1,11 @@
+apiVersion: kwatchers.core.kwatch.cloudcorner.org/v1beta1
+kind: Kwatcher
+metadata:
+  name: example-kwatcher
+spec:
+  provider:
+    port: 443
+    url: "https://api.jsonbin.io/v3/b/67efdc378960c979a57e2d50"
+  config:
+    refreshInterval: 30
+    secret: "secret-1"
