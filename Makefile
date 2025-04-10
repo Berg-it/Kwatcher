@@ -43,6 +43,7 @@ help: ## Display this help.
 
 .PHONY: manifests
 manifests: controller-gen ## Generate WebhookConfiguration, ClusterRole and CustomResourceDefinition objects.
+	@echo "Generating manifests..."
 	$(CONTROLLER_GEN) rbac:roleName=manager-role crd webhook paths="./..." output:crd:artifacts:config=config/crd/bases
 
 .PHONY: generate
@@ -103,12 +104,14 @@ run: manifests generate fmt vet ## Run a controller from your host.
 # (i.e. docker build --platform linux/arm64). However, you must enable docker buildKit for it.
 # More info: https://docs.docker.com/develop/develop-images/build_enhancements/
 .PHONY: docker-build
-docker-build: ## Build docker image with the manager.
-	$(CONTAINER_TOOL) build -t ${IMG} .
+docker-build:  # Construit l'image Docker
+	@echo "Building Docker image $(IMAGE_NAME):$(IMAGE_TAG)"
+	docker build -t $(IMAGE_NAME):$(IMAGE_TAG) .
 
 .PHONY: docker-push
-docker-push: ## Push docker image with the manager.
-	$(CONTAINER_TOOL) push ${IMG}
+docker-push:  # Push l'image sur Docker Hub
+	@echo "Pushing Docker image $(IMAGE_NAME):$(IMAGE_TAG)"
+	docker push $(IMAGE_NAME):$(IMAGE_TAG)
 
 # PLATFORMS defines the target platforms for the manager image be built to provide support to multiple
 # architectures. (i.e. make docker-buildx IMG=myregistry/mypoperator:0.0.1). To use this option you need to:
@@ -141,19 +144,23 @@ endif
 
 .PHONY: install
 install: manifests kustomize ## Install CRDs into the K8s cluster specified in ~/.kube/config.
+	@echo "Installing CRDs into the cluster..."
 	$(KUSTOMIZE) build config/crd | $(KUBECTL) apply -f -
 
 .PHONY: uninstall
 uninstall: manifests kustomize ## Uninstall CRDs from the K8s cluster specified in ~/.kube/config. Call with ignore-not-found=true to ignore resource not found errors during deletion.
+	@echo "Uninstalling CRDs from the cluster..."
 	$(KUSTOMIZE) build config/crd | $(KUBECTL) delete --ignore-not-found=$(ignore-not-found) -f -
 
 .PHONY: deploy
 deploy: manifests kustomize ## Deploy controller to the K8s cluster specified in ~/.kube/config.
+	@echo "Deploying controller to the cluster..."
 	cd config/manager && $(KUSTOMIZE) edit set image controller=${IMG}
 	$(KUSTOMIZE) build config/default | $(KUBECTL) apply -f -
 
 .PHONY: undeploy
 undeploy: kustomize ## Undeploy controller from the K8s cluster specified in ~/.kube/config. Call with ignore-not-found=true to ignore resource not found errors during deletion.
+	@echo "Undeploying controller from the cluster..."	
 	$(KUSTOMIZE) build config/default | $(KUBECTL) delete --ignore-not-found=$(ignore-not-found) -f -
 
 ##@ Dependencies
@@ -182,11 +189,13 @@ GOLANGCI_LINT_VERSION ?= v1.63.4
 .PHONY: kustomize
 kustomize: $(KUSTOMIZE) ## Download kustomize locally if necessary.
 $(KUSTOMIZE): $(LOCALBIN)
+	@echo "Installing kustomize $(KUSTOMIZE_VERSION)..."
 	$(call go-install-tool,$(KUSTOMIZE),sigs.k8s.io/kustomize/kustomize/v5,$(KUSTOMIZE_VERSION))
 
 .PHONY: controller-gen
 controller-gen: $(CONTROLLER_GEN) ## Download controller-gen locally if necessary.
 $(CONTROLLER_GEN): $(LOCALBIN)
+	@echo "Installing controller-gen $(CONTROLLER_TOOLS_VERSION)..."
 	$(call go-install-tool,$(CONTROLLER_GEN),sigs.k8s.io/controller-tools/cmd/controller-gen,$(CONTROLLER_TOOLS_VERSION))
 
 .PHONY: setup-envtest
@@ -222,3 +231,57 @@ mv $(1) $(1)-$(3) ;\
 } ;\
 ln -sf $(1)-$(3) $(1)
 endef
+
+
+# ===================================================
+# Helm Chart Automation
+# ===================================================
+
+# ====== Variables ======
+DOCKER_USERNAME := berguiga
+IMAGE_NAME := $(strip $(DOCKER_USERNAME)/kwatcher)
+IMAGE_TAG ?= $(strip $(shell git rev-parse --short HEAD))
+HELM_CHART_DIR := charts/kwatcher-operator
+
+
+.PHONY: all
+all: clean manifests docker-build docker-push kustomize helmify helm-generate helm-local-release
+
+HELMIFY ?= $(LOCALBIN)/helmify
+
+.PHONY: helmify
+helmify: $(HELMIFY)
+$(HELMIFY): $(LOCALBIN)
+	test -s $(LOCALBIN)/helmify || GOBIN=$(LOCALBIN) go install github.com/arttor/helmify/cmd/helmify@v0.4.5
+
+.PHONY: helm-generate
+helm-generate: manifests kustomize helmify
+	@echo "📦 Generating Helm chart in $(HELM_CHART_DIR)..."
+	@$(KUSTOMIZE) build config/default | $(HELMIFY) $(HELM_CHART_DIR)
+
+.PHONY: helm-local-release
+helm-local-release: helm-update-image helm-package
+
+SED_INPLACE = sed -i
+UNAME_S := $(shell uname -s)
+ifeq ($(UNAME_S),Darwin)
+	SED_INPLACE = sed -i ''
+endif
+
+.PHONY: helm-update-image
+helm-update-image:
+	@echo "Updating Helm chart with image: $(IMAGE_NAME):$(IMAGE_TAG)"
+	@$(SED_INPLACE) 's|repository: .*|repository: $(IMAGE_NAME)|' $(HELM_CHART_DIR)/values.yaml
+	@$(SED_INPLACE) 's|tag: .*|tag: $(IMAGE_TAG)|' $(HELM_CHART_DIR)/values.yaml
+
+.PHONY: helm-package
+helm-package: 
+	@helm package $(HELM_CHART_DIR) --destination ./charts/
+	@helm repo index ./charts/
+
+.PHONY: clean
+clean:
+	rm -rf $(HELMIFY)
+	rm -rf ./charts/*.tgz	
+	rm -rf ./charts/kwatcher-operator/*.yaml
+	rm -rf ./charts/kwatcher-operator/templates/*

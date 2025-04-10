@@ -1,4 +1,4 @@
-apiVersion: kwatchers.core.kwatch.cloudcorner.org/v1beta1
+apiVersion: core.kwatch.cloudcorner.org/v1beta1
 kind: Kwatcher
 metadata:
   name: example-kwatcher

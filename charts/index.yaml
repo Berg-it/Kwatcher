@@ -1,0 +1,14 @@
+apiVersion: v1
+entries:
+  kwatcher-operator:
+  - apiVersion: v2
+    appVersion: 0.1.0
+    created: "2025-04-12T15:10:20.278714+02:00"
+    description: A Helm chart for Kubernetes
+    digest: 0dc8610e7435d6eab7f4cf444bca313d98103f6c159f4177e50d9a825bcc7e58
+    name: kwatcher-operator
+    type: application
+    urls:
+    - kwatcher-operator-0.1.0.tgz
+    version: 0.1.0
+generated: "2025-04-12T15:10:20.277893+02:00"
