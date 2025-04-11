@@ -34,8 +34,8 @@ type KwatcherReconciler struct {
 // +kubebuilder:rbac:groups=core.kwatch.cloudcorner.org,resources=kwatchers/status,verbs=get;update;patch
 // +kubebuilder:rbac:groups=core.kwatch.cloudcorner.org,resources=kwatchers/finalizers,verbs=update
 // +kubebuilder:rbac:groups="",resources=secrets,verbs=get;list;watch
-// +kubebuilder:rbac:groups="",resources=configmap,verbs=get;list;watch;create;update;patch;delete
-// +kubebuilder:rbac:groups="apps",resources=deployments,verbs=get;list;update;patch
+// +kubebuilder:rbac:groups="",resources=configmaps,verbs=get;list;watch;create;update;patch;delete
+// +kubebuilder:rbac:groups="apps",resources=deployments,verbs=get;update;patch;list;watch
 
 // Reconcile is part of the main kubernetes reconciliation loop which aims to
 // move the current state of the cluster closer to the desired state.

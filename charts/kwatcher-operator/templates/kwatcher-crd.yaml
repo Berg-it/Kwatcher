@@ -1,0 +1,84 @@
+apiVersion: apiextensions.k8s.io/v1
+kind: CustomResourceDefinition
+metadata:
+  name: kwatchers.core.kwatch.cloudcorner.org
+  annotations:
+    controller-gen.kubebuilder.io/version: v0.17.2
+  labels:
+  {{- include "kwatcher-operator.labels" . | nindent 4 }}
+spec:
+  group: core.kwatch.cloudcorner.org
+  names:
+    kind: Kwatcher
+    listKind: KwatcherList
+    plural: kwatchers
+    singular: kwatcher
+  scope: Namespaced
+  versions:
+  - name: v1beta1
+    schema:
+      openAPIV3Schema:
+        description: Kwatcher is the Schema for the kwatchers API.
+        properties:
+          apiVersion:
+            description: |-
+              APIVersion defines the versioned schema of this representation of an object.
+              Servers should convert recognized schemas to the latest internal value, and
+              may reject unrecognized values.
+              More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#resources
+            type: string
+          kind:
+            description: |-
+              Kind is a string value representing the REST resource this object represents.
+              Servers may infer this from the endpoint the client submits requests to.
+              Cannot be updated.
+              In CamelCase.
+              More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#types-kinds
+            type: string
+          metadata:
+            type: object
+          spec:
+            description: KwatcherSpec defines the desired state of Kwatcher.
+            properties:
+              config:
+                properties:
+                  refreshInterval:
+                    format: int32
+                    type: integer
+                  secret:
+                    type: string
+                required:
+                - refreshInterval
+                - secret
+                type: object
+              provider:
+                description: Foo is an example field of Kwatcher. Edit kwatcher_types.go
+                  to remove/update
+                properties:
+                  port:
+                    format: int32
+                    type: integer
+                  url:
+                    type: string
+                required:
+                - port
+                - url
+                type: object
+            required:
+            - config
+            - provider
+            type: object
+          status:
+            description: KwatcherStatus defines the observed state of Kwatcher.
+            type: object
+        type: object
+    served: true
+    storage: true
+    subresources:
+      status: {}
+status:
+  acceptedNames:
+    kind: ""
+    plural: ""
+  conditions: []
+  storedVersions: []

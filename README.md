@@ -180,7 +180,10 @@ spec:
 
 ## 🚀 Installation
 
-_TODO: Add installation steps using `kubectl` or `Helm` if applicable._
+## Installation avec Helm
+
+
+_TODO: Add installation steps using `kubectl` if applicable._
 
 ---
 
