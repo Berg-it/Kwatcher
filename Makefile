@@ -103,12 +103,14 @@ run: manifests generate fmt vet ## Run a controller from your host.
 # (i.e. docker build --platform linux/arm64). However, you must enable docker buildKit for it.
 # More info: https://docs.docker.com/develop/develop-images/build_enhancements/
 .PHONY: docker-build
-docker-build: ## Build docker image with the manager.
-	$(CONTAINER_TOOL) build -t ${IMG} .
+docker-build:  # Construit l'image Docker
+	@echo "Building Docker image $(IMAGE_NAME):$(IMAGE_TAG)"
+	docker build -t $(IMAGE_NAME):$(IMAGE_TAG) .
 
 .PHONY: docker-push
-docker-push: ## Push docker image with the manager.
-	$(CONTAINER_TOOL) push ${IMG}
+docker-push:  # Push l'image sur Docker Hub
+	@echo "Pushing Docker image $(IMAGE_NAME):$(IMAGE_TAG)"
+	docker push $(IMAGE_NAME):$(IMAGE_TAG)
 
 # PLATFORMS defines the target platforms for the manager image be built to provide support to multiple
 # architectures. (i.e. make docker-buildx IMG=myregistry/mypoperator:0.0.1). To use this option you need to:
@@ -222,3 +224,45 @@ mv $(1) $(1)-$(3) ;\
 } ;\
 ln -sf $(1)-$(3) $(1)
 endef
+
+
+
+# ===================================================
+# Helm Chart Automation
+# ===================================================
+
+DOCKER_USERNAME := berguiga# Votre nom d'utilisateur Docker Hub
+IMAGE_NAME := $(strip $(DOCKER_USERNAME)/kwatcher)
+IMAGE_TAG ?= $(strip $(shell git rev-parse --short HEAD))
+HELM_CHART_DIR := charts/kwatcher-operator
+
+.PHONY: all
+all: docker-build docker-push helm  # Tout faire en une commande : `make all`
+
+SED_INPLACE = sed -i
+UNAME_S := $(shell uname -s)
+ifeq ($(UNAME_S),Darwin)
+	SED_INPLACE = sed -i ''
+endif
+
+.PHONY: helm-update-image
+helm-update-image:
+	@echo "Updating Helm chart with image: $(IMAGE_NAME):$(IMAGE_TAG)"
+	@$(SED_INPLACE) 's|repository: .*|repository: $(IMAGE_NAME)|' $(HELM_CHART_DIR)/values.yaml
+	@$(SED_INPLACE) 's|tag: .*|tag: $(IMAGE_TAG)|' $(HELM_CHART_DIR)/values.yaml
+
+.PHONY: helm-package
+helm-package:  # Package le chart Helm
+	@helm package $(HELM_CHART_DIR) --destination ./charts/
+	@helm repo index ./charts/
+
+# ====== Helm ======
+.PHONY: helm
+helm: helm-update-image helm-package
+
+# ====== Clean ======
+.PHONY: clean
+clean:  # Supprime les fichiers générés
+	@rm -rf $(HELM_CHART_DIR)/*.tgz
+
+	

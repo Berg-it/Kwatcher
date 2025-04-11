@@ -1,0 +1,25 @@
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: {{ include "kwatcher-operator.fullname" . }}-kwatcher-editor-role
+  labels:
+  {{- include "kwatcher-operator.labels" . | nindent 4 }}
+rules:
+- apiGroups:
+  - core.kwatch.cloudcorner.org
+  resources:
+  - kwatchers
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - patch
+  - update
+  - watch
+- apiGroups:
+  - core.kwatch.cloudcorner.org
+  resources:
+  - kwatchers/status
+  verbs:
+  - get
