@@ -7,7 +7,7 @@ rules:
 - apiGroups:
   - ""
   resources:
-  - configmap
+  - configmaps
   verbs:
   - create
   - delete
@@ -33,6 +33,7 @@ rules:
   - list
   - patch
   - update
+  - watch
 - apiGroups:
   - core.kwatch.cloudcorner.org
   resources:
