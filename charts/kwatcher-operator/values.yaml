@@ -11,7 +11,7 @@ controllerManager:
         - ALL
     image:
       repository: berguiga/kwatcher
-      tag: 24561c3
+      tag: 59222aa
     resources:
       limits:
         cpu: 500m

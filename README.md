@@ -63,7 +63,7 @@ Kwatcher is especially useful when your application relies on **external configu
 ## 📄 Example: Custom Resource
 
 ```yaml
-apiVersion: kwatchers.core.kwatch.cloudcorner.org/v1beta1
+apiVersion: core.kwatch.cloudcorner.org/v1beta1
 kind: Kwatcher
 metadata:
   name: example-kwatcher
@@ -178,11 +178,33 @@ spec:
 
 ---
 
-## 🚀 Installation
+## ⚙️ Generate and Deploy the Operator with Helm
 
-_TODO: Add installation steps using `kubectl` if applicable._
+To fully generate and deploy the operator using Helm, you can run the following command:
+
+```bash
+make all
+```
+
+This command performs the entire workflow:
+
+1. **Generates Kubernetes manifests** using `controller-gen` (via `make manifests`)
+2. **Builds the Docker image** for the operator
+3. **Pushes the image** to your Docker registry
+4. **Installs required tools**: `kustomize` and `helmify` if missing
+5. **Generates a Helm chart** from Kustomize output using `helmify`
+6. **Updates the Helm chart** with the correct Docker image and tag
+7. **Packages the chart** and updates the local Helm repo index
 
 ---
+
+### 🚀 To install the generated Helm chart on your cluster:
+
+```bash
+helm install kwatcher ./charts/kwatcher-operator-<version>.tgz
+```
+
+Replace `<version>` with the appropriate chart version (e.g. `0.1.0`).
 
 ## 🛠️ Roadmap
 
