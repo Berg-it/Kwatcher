@@ -206,6 +206,15 @@ helm install kwatcher ./charts/kwatcher-operator-<version>.tgz
 
 Replace `<version>` with the appropriate chart version (e.g. `0.1.0`).
 
+## 🚀 Install via Helm (from GitHub Container Registry)
+
+To install the operator directly from GitHub Container Registry (GHCR), use the following command:
+
+```bash
+helm install kwatcher oci://ghcr.io/berg-it/kwatcher-operator --version 0.1.0
+```
+This will install the Helm chart named `kwatcher-operator` from my public GHCR package.
+
 ## 🛠️ Roadmap
 
 - [ ] Support multiple URLs per `Kwatcher`
