@@ -285,3 +285,20 @@ clean:
 	rm -rf ./charts/*.tgz	
 	rm -rf ./charts/kwatcher-operator/*.yaml
 	rm -rf ./charts/kwatcher-operator/templates/*
+
+
+# ========= Helm GHCR push =========
+GITHUB_USERNAME ?= berg-it
+GHCR_REPO ?= kwatcher-operator
+CHART_VERSION ?= 0.1.0
+CHART_FILE := $(GHCR_REPO)-$(CHART_VERSION).tgz
+
+.PHONY: helm-push-ghcr
+helm-push-ghcr: $(CHART_FILE)
+	@echo "🔐 Logging into GitHub Container Registry (ghcr.io)..."
+	@echo $$GHCR_TOKEN | helm registry login ghcr.io --username $(GITHUB_USERNAME) --password-stdin
+	@echo "📦 Pushing chart to ghcr.io/$(GITHUB_USERNAME)/$(GHCR_REPO)..."
+	@helm push $(CHART_FILE) oci://ghcr.io/$(GITHUB_USERNAME)/$(GHCR_REPO)
+
+# Automatically package if not done
+$(CHART_FILE): helm-package
