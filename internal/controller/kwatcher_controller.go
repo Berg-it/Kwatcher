@@ -24,7 +24,7 @@ import (
 type KwatcherReconciler struct {
 	client.Client         //Fournit un accès aux ressources Kubernetes.
 	Scheme                *runtime.Scheme
-	MaxConcurrentRollouts int
+	MaxConcurrentRollouts int `default:"3"`
 	RolloutQueue          workqueue.RateLimitingInterface
 	rolloutLock           sync.Mutex
 	activeRollouts        int
@@ -240,7 +240,7 @@ func (r *KwatcherReconciler) processRolloutQueue(ctx context.Context) {
 			}()
 
 			if err := r.triggerRollout(ctx, key); err != nil {
-				log.Error(err, "Échec du rollout", "deployment", key.Name)
+				log.Error(err, "Rollout failed", "deployment name: ", key.Name)
 				r.RolloutQueue.AddRateLimited(key)
 			} else {
 				r.RolloutQueue.Forget(key)
@@ -257,7 +257,7 @@ func (r *KwatcherReconciler) triggerRollout(ctx context.Context, key types.Names
 	}
 	deployment := &appsv1.Deployment{}
 	if err := r.Get(ctx, key, deployment); err != nil {
-		return fmt.Errorf("échec de la récupération du deployment: %w", err)
+		return fmt.Errorf("failed to fetch deployment: %w", err)
 	}
 
 	// // Vérifier la stratégie de déploiement
